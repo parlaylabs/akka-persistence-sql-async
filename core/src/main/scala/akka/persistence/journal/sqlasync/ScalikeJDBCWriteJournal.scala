@@ -12,7 +12,7 @@ import scala.util.{Success, Try}
 
 private[sqlasync] trait ScalikeJDBCWriteJournal extends AsyncWriteJournal with StoragePlugin {
   private[this] lazy val journalTable = {
-    val tableName = extension.config.journalTableName
+    val tableName = getExtension.config.journalTableName
     SQLSyntaxSupportFeature.verifyTableName(tableName)
     SQLSyntax.createUnsafely(tableName)
   }

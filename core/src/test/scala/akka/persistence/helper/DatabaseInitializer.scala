@@ -11,7 +11,9 @@ trait DatabaseInitializer extends PluginSpec {
   protected lazy val sqlAsyncConfig: SQLAsyncConfig = ScalikeJDBCExtension(system).config
   private[this] def executeDDL[A](ddl: Seq[String]): Unit = {
     implicit val executor = sqlAsyncConfig.system.dispatcher
-    val provider = ScalikeJDBCExtension(sqlAsyncConfig.system).sessionProvider
+    val extension = ScalikeJDBCExtension(sqlAsyncConfig.system)
+    extension.initialize()
+    val provider = extension.sessionProvider
     val result = provider.localTx { implicit session =>
       ddl.foldLeft(Future.successful(())) { (result, d) =>
         result.flatMap { _ =>

@@ -17,13 +17,19 @@ private[persistence] class ScalikeJDBCExtension(system: ExtendedActorSystem) ext
   val sessionProvider: ScalikeJDBCSessionProvider = {
     new DefaultScalikeJDBCSessionProvider(connectionPoolName, system.dispatcher)
   }
-  AsyncConnectionPool.add(
-    name = connectionPoolName,
-    url = config.url,
-    user = config.user,
-    password = if (config.password == "") null else config.password,
-    settings = AsyncConnectionPoolSettings(
-      maxPoolSize = config.maxPoolSize,
-      maxQueueSize = config.waitQueueCapacity)
-  )
+
+  def initialize(passwordProvider: () => String = () => ""): Unit = {
+    val providedPassword = passwordProvider()
+    val password = if (providedPassword == "") config.password else providedPassword
+
+    AsyncConnectionPool.add(
+      name = connectionPoolName,
+      url = config.url,
+      user = config.user,
+      password = if (password == "") null else password,
+      settings = AsyncConnectionPoolSettings(
+        maxPoolSize = config.maxPoolSize,
+        maxQueueSize = config.waitQueueCapacity)
+    )
+  }
 }

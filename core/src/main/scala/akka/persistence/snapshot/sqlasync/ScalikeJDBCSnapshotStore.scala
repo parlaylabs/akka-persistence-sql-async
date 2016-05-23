@@ -11,7 +11,7 @@ import scalikejdbc.interpolation.SQLSyntax
 
 private[persistence] trait ScalikeJDBCSnapshotStore extends SnapshotStore with StoragePlugin {
   protected[this] lazy val snapshotTable = {
-    val tableName = extension.config.snapshotTableName
+    val tableName = getExtension.config.snapshotTableName
     SQLSyntaxSupportFeature.verifyTableName(tableName)
     SQLSyntax.createUnsafely(tableName)
   }

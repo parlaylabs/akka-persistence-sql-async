@@ -9,14 +9,27 @@ import scalikejdbc.async._
 
 private[persistence] trait StoragePlugin extends Actor with ActorLogging {
   implicit protected[this] def persistenceExecutor: ExecutionContext = context.dispatcher
+  private var initialized: Boolean = false
+  private lazy val extension: ScalikeJDBCExtension = ScalikeJDBCExtension(context.system)
   protected[this] val serialization: Serialization = SerializationExtension(context.system)
-  protected[this] lazy val extension: ScalikeJDBCExtension = ScalikeJDBCExtension(context.system)
-  protected[this] lazy val sessionProvider: ScalikeJDBCSessionProvider = extension.sessionProvider
+  protected[this] lazy val sessionProvider: ScalikeJDBCSessionProvider = getExtension.sessionProvider
 
   protected[this] lazy val metadataTable = {
     val tableName = extension.config.metadataTableName
     SQLSyntaxSupportFeature.verifyTableName(tableName)
     SQLSyntax.createUnsafely(tableName)
+  }
+
+  protected[this] lazy val getExtension = {
+    if (!initialized) {
+      extension.initialize(passwordProvider)
+      initialized = true
+    }
+    extension
+  }
+
+  protected[this] def passwordProvider: () => String = {
+    () => ""
   }
 
   // PersistenceId => its surrogate key
